@@ -1,7 +1,11 @@
 ﻿using AventStack.ExtentReports;
+using AventStack.ExtentReports.Reporter;
+using CompetitionTaskMars.Data;
 using CompetitionTaskMars.Pages;
 using CompetitionTaskMars.Utilities;
+using Newtonsoft.Json;
 using NUnit.Framework;
+using NUnit.Framework.Interfaces;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using System;
@@ -12,12 +16,15 @@ using System.Threading.Tasks;
 
 namespace CompetitionTaskMars.Tests
 {
+    [TestFixture]
     public class Education_Tests : CommonDriver
     {
         LoginPage loginPageObj;
         HomePage homePageObj;
         EducationPage educationPageObj;
-        ExtentReports extent;
+        public static ExtentReports extent;
+        public static ExtentTest test;
+        TestData testData;
 
         public Education_Tests()
         {
@@ -26,43 +33,75 @@ namespace CompetitionTaskMars.Tests
             educationPageObj = new EducationPage();
         }
 
-        [SetUp]
-        public void SetUp()
+        [OneTimeSetUp]
+        public static void ExtentStart()
         {
-            driver = new ChromeDriver();
-            driver.Manage().Window.Maximize();
-            driver.Navigate().GoToUrl("http://localhost:5000/Home");
-            loginPageObj.LoginActions();            
+            extent = new ExtentReports();
+            var sparkReporter = new ExtentSparkReporter(@"D:\Sasikala\MVP_Studio\CompetitionTask\CompetitionTaskMars\CompetitionTaskMars\ExtentReports\Education.html");
+            extent.AttachReporter(sparkReporter);
+        }
+
+        [OneTimeTearDown]
+        public static void ExtentClose()
+        {
+            extent.Flush();
+        }
+
+        [SetUp]
+        public void jsonSetUp()
+        {
+            string jsonFilePath = "D:\\Sasikala\\MVP_Studio\\CompetitionTask\\CompetitionTaskMars\\CompetitionTaskMars\\Data\\testdata.json";
+            string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
+            testData = JsonConvert.DeserializeObject<TestData>(jsonContent);            
+        }
+
+        [SetUp]
+        public void loginSetUp()
+        {
+            Initialize();
+            loginPageObj.LoginActions();
             homePageObj.GoToEducationPage();
         }
 
-        [Test]
+        [Test, Order(1), Description("This test is deleting all records in the education list")]
+        public void Delete_All_Records()
+        {
+            test = extent.CreateTest("Delete_AllRecords").Info("Test started");
+            educationPageObj.Delete_All_Records();
+            test.Log(Status.Pass, "Delete_AllRecords passed");
+        }
+
+        [Test, Order(2), Description("This test is adding education in the list")]
         public void Add_Education()
         {
-           educationPageObj.Add_Education();
-
+            test = extent.CreateTest("Add_Education").Info("Test started");
+            educationPageObj.Add_Education(testData);
+            
             string actualMessage = educationPageObj.getMessage();
             Assert.That(actualMessage == "Education has been added", "Actual message and expected message do not match");
 
-            string newUniversityName = educationPageObj.getUniversityName("University of London");
-            string newCountry = educationPageObj.getCountry("United Kingdom");
-            string newTitle = educationPageObj.getTitle("B.Tech");
-            string newDegree = educationPageObj.getDegree("Computer Science");
-            string newYearOfGraduation = educationPageObj.getYearOfGraduation("2015");
+            string newUniversityName = educationPageObj.getUniversityName(testData.UniversityName);
+            string newCountry = educationPageObj.getCountry(testData.Country);
+            string newTitle = educationPageObj.getTitle(testData.Title);
+            string newDegree = educationPageObj.getDegree(testData.Degree);
+            string newYearOfGraduation = educationPageObj.getYearOfGraduation(testData.YearOfGraduation);
 
-            Assert.That(newUniversityName == "University of London", "Actual University name and expected University name do not match");
-            Assert.That(newCountry == "United Kingdom", "Actual country and expected country do not match");
-            Assert.That(newTitle == "B.Tech", "Actual title and expected title do not match");
-            Assert.That(newDegree == "Computer Science", "Actual degree and expected degree do not match");
-            Assert.That(newYearOfGraduation == "2015", "Actual yearOfGraduation and expected yearOfGraduation do not match");
+            Assert.That(newUniversityName == testData.UniversityName, "Actual University name and expected University name do not match");
+            Assert.That(newCountry == testData.Country, "Actual country and expected country do not match");
+            Assert.That(newTitle == testData.Title, "Actual title and expected title do not match");
+            Assert.That(newDegree == testData.Degree, "Actual degree and expected degree do not match");
+            Assert.That(newYearOfGraduation == testData.YearOfGraduation, "Actual yearOfGraduation and expected yearOfGraduation do not match");
 
+            test.Log(Status.Pass, "Add_Education passed");
             Console.WriteLine(actualMessage);
         }
 
         [TearDown]
         public void TearDown()
         {
-            driver.Quit();
+            Close();
         }
+
+
     }
 }

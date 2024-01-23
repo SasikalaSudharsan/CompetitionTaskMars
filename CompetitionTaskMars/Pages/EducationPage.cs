@@ -1,4 +1,5 @@
-﻿using CompetitionTaskMars.Utilities;
+﻿using CompetitionTaskMars.Data;
+using CompetitionTaskMars.Utilities;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using System;
@@ -12,30 +13,38 @@ namespace CompetitionTaskMars.Pages
 {
     public class EducationPage : CommonDriver
     {
-        private SelectElement dropdown;
+        public void Delete_All_Records()
+        {
+            IReadOnlyCollection<IWebElement> deleteButtons = driver.FindElements(By.XPath("//div[@data-tab='third']//i[@class='remove icon']"));
+            //Delete all records in the list
+            foreach (IWebElement deleteButton in deleteButtons)
+            {
+                deleteButton.Click();
+            }
+        }
 
-        public void Add_Education()
+        public void Add_Education(TestData testData)
         {
             IWebElement AddNewButton = driver.FindElement(By.XPath("//div[@class='four wide column' and h3='Education']/following-sibling::div[@class='twelve wide column scrollTable']//th[@class='right aligned']//div"));
             AddNewButton.Click();
 
             IWebElement UniversityNameTextbox = driver.FindElement(By.XPath("//input[@name='instituteName']"));
-            UniversityNameTextbox.SendKeys("University of London");
+            UniversityNameTextbox.SendKeys(testData.UniversityName);
 
             IWebElement CountryOfUniversity = driver.FindElement(By.XPath("//select[@name='country']"));
             SelectElement chooseCountry = new SelectElement(CountryOfUniversity);
-            chooseCountry.SelectByValue("United Kingdom");
+            chooseCountry.SelectByValue(testData.Country);
 
             IWebElement Title = driver.FindElement(By.XPath("//select[@name='title']"));
             SelectElement chooseTitle = new SelectElement(Title);
-            chooseTitle.SelectByValue("B.Tech");
+            chooseTitle.SelectByValue(testData.Title);
 
             IWebElement Degree = driver.FindElement(By.XPath("//input[@name='degree']"));
-            Degree.SendKeys("Computer Science");
+            Degree.SendKeys(testData.Degree);
 
             IWebElement YearOfGraduation = driver.FindElement(By.XPath("//select[@name='yearOfGraduation']"));
             SelectElement chooseYearOfGraduation = new SelectElement(YearOfGraduation);
-            chooseYearOfGraduation.SelectByValue("2015");
+            chooseYearOfGraduation.SelectByValue(testData.YearOfGraduation);
 
             IWebElement AddButton = driver.FindElement(By.XPath("//input[@value='Add']"));
             AddButton.Click();

@@ -1,7 +1,7 @@
 ﻿{
-  "UniversityName": "University of London",
-  "Country": "United Kingdom",
-  "Title": "B.Tech",
-  "Degree": "Computer Science",
+        "UniversityName": "University of London",
+        "Country": "United Kingdom",
+        "Title": "B.Tech",
+        "Degree": "Computer Science",
   "YearOfGraduation": "2015"
-}
+ }

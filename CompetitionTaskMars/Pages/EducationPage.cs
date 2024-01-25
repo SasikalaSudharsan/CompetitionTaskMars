@@ -96,44 +96,47 @@ namespace CompetitionTaskMars.Pages
             return newYearOfGraduation.Text;
         }
 
-        public void Update_Education(string universityName, string country, string title, string degree, string yearOfGraduation)
+        public void Update_Education(TestData testData)
         {
             Thread.Sleep(4000);
-            IWebElement UpdateButton = driver.FindElement(By.XPath($"//div[@class='four wide column' and h3[text()='Education']]/following-sibling::div[@class='twelve wide column scrollTable']//tr[1][td[text()='{universityName}'] and td[text()='{country}'] and td[text()='{title}'] and td[text()='{degree}'] and td[text()='{yearOfGraduation}']]//span[1]"));
+            IWebElement UpdateButton = driver.FindElement(By.XPath($"//div[@class='four wide column' and h3[text()='Education']]/following-sibling::div[@class='twelve wide column scrollTable']//tr[1][td[text()='{testData.ExistingUniversityname}'] " +
+                $"and td[text()='{testData.ExistingCountry}'] and td[text()='{testData.ExistingTitle}'] and td[text()='{testData.ExistingDegree}'] and td[text()='{testData.ExistingYearofGraduation}']]//span[1]"));
             UpdateButton.Click();
             
             UniversityNameTextbox.Clear();
-            UniversityNameTextbox.SendKeys("University of Austin");
+            UniversityNameTextbox.SendKeys(testData.NewUniversityName);
 
             SelectElement chooseCountry = new SelectElement(CountryOfUniversity);
-            chooseCountry.SelectByValue("United States");
+            chooseCountry.SelectByValue(testData.NewCountry);
 
             SelectElement chooseTitle = new SelectElement(Title);
-            chooseTitle.SelectByValue("B.A");
+            chooseTitle.SelectByValue(testData.NewTitle);
 
             Degree.Clear();
-            Degree.SendKeys("English");
+            Degree.SendKeys(testData.NewDegree);
 
             SelectElement chooseYearOfGraduation = new SelectElement(YearOfGraduation);
-            chooseYearOfGraduation.SelectByValue("2020");
+            chooseYearOfGraduation.SelectByValue(testData.NewYearofGraduation);
 
             IWebElement UpdateNewButton = driver.FindElement(By.XPath("//input[@value='Update']"));
             UpdateNewButton.Click();
         }
 
-        public void Delete_Education(string universityName, string country, string title, string degree, string yearOfGraduation)
+        public void Delete_Education(TestData testData)
         {
             Thread.Sleep(4000);
 
-            IWebElement DeleteButton = driver.FindElement(By.XPath($"//div[@class='four wide column' and h3[text()='Education']]/following-sibling::div[@class='twelve wide column scrollTable']//tr[1][td[text()='{universityName}'] and td[text()='{country}'] and td[text()='{title}'] and td[text()='{degree}'] and td[text()='{yearOfGraduation}']]//span[2]"));
+            IWebElement DeleteButton = driver.FindElement(By.XPath($"//div[@class='four wide column' and h3[text()='Education']]/following-sibling::div[@class='twelve wide column scrollTable']//tr[1][td[text()='{testData.UniversityName}'] " +
+                $"and td[text()='{testData.Country}'] and td[text()='{testData.Title}'] and td[text()='{testData.Degree}'] and td[text()='{testData.YearOfGraduation}']]//span[2]"));
             DeleteButton.Click();
         }
 
-        public string getDeletedEducation(string universityName, string country, string title, string degree, string yearOfGraduation)
+        public string getDeletedEducation(TestData testData)
         {
             try
             {
-                IWebElement DeletedEducation = driver.FindElement(By.XPath($"\r\n\r\n//div[@class='four wide column' and h3[text()='Education']]/following-sibling::div[@class='twelve wide column scrollTable']//tr[1][td[text()='{universityName}'] and td[text()='{country}'] and td[text()='{title}'] and td[text()='{degree}'] and td[text()='{yearOfGraduation}']]"));
+                IWebElement DeletedEducation = driver.FindElement(By.XPath($"\r\n\r\n//div[@class='four wide column' and h3[text()='Education']]/following-sibling::div[@class='twelve wide column scrollTable']//tr[1][td[text()='{testData.UniversityName}'] " +
+                    $"and td[text()='{testData.Country}'] and td[text()='{testData.Title}'] and td[text()='{testData.Degree}'] and td[text()='{testData.YearOfGraduation}']]"));
                 return DeletedEducation.Text;
             }
             catch(NoSuchElementException)

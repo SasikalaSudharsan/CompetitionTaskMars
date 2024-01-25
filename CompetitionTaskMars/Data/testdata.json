@@ -1,29 +1,41 @@
 ﻿{
-  "AddEducation": {
-    "UniversityName": "University of London",
-    "Country": "United Kingdom",
-    "Title": "B.Tech",
-    "Degree": "Computer Science",
-    "YearOfGraduation": "2015"
-  },
-  "UpdateEducation": {
-    "ExistingUniversityName": "University of London",
-    "ExistingCountry": "United Kingdom",
-    "ExistingTitle": "B.Tech",
-    "ExistingDegree": "Computer Science",
-    "ExistingYearOfGraduation": "2015",
-    "NewUniversityName": "University of Austin",
-    "NewCountry": "United States",
-    "NewTitle": "B.A",
-    "NewDegree": "English",
-    "NewYearOfGraduation": "2020"
-  },
-  "DeleteEducation": {
-    "UniversityName": "University of Austin",
-    "Country": "United States",
-    "Title": "B.A",
-    "Degree": "English",
-    "YearOfGraduation": "2020"
-  }
-
+  "AddEducation": [
+    {
+      "UniversityName": "University of London",
+      "Country": "United Kingdom",
+      "Title": "B.Tech",
+      "Degree": "Computer Science",
+      "YearOfGraduation": "2015"
+    },
+    {
+      "UniversityName": "Anna University",
+      "Country": "India",
+      "Title": "M.Tech",
+      "Degree": "Electrical",
+      "YearOfGraduation": "2017"
+    }
+   ],
+  "UpdateEducation": [
+    {
+      "ExistingUniversityName": "University of London",
+      "ExistingCountry": "United Kingdom",
+      "ExistingTitle": "B.Tech",
+      "ExistingDegree": "Computer Science",
+      "ExistingYearOfGraduation": "2015",
+      "NewUniversityName": "University of Austin",
+      "NewCountry": "United States",
+      "NewTitle": "B.A",
+      "NewDegree": "English",
+      "NewYearOfGraduation": "2020"
+    }
+  ],
+  "DeleteEducation": [
+    {
+      "UniversityName": "University of Austin",
+      "Country": "United States",
+      "Title": "B.A",
+      "Degree": "English",
+      "YearOfGraduation": "2020"
+    }
+  ]
 }

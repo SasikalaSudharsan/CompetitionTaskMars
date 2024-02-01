@@ -1,0 +1,26 @@
+﻿[
+  {
+    "Id" : 1,
+    "UniversityName": "University of London",
+    "Country": "United Kingdom",
+    "Title": "B.Tech",
+    "Degree": "Computer Science",
+    "YearOfGraduation": "2015"
+  },
+  {
+    "Id": 2,
+    "UniversityName": "University of London",
+    "Country": "United Kingdom",
+    "Title": "B.Tech",
+    "Degree": "Computer Science",
+    "YearOfGraduation": "2015"
+  },
+  {
+    "Id": 3,
+    "UniversityName": "%$^&*#",
+    "Country": "Austria",
+    "Title": "M.B.A",
+    "Degree": "^&*(#$@",
+    "YearOfGraduation": "2022"
+  }
+]

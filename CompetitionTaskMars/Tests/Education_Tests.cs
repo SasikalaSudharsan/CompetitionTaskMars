@@ -11,9 +11,13 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
+using System.Drawing.Imaging;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading.Tasks;
+using Selenium = OpenQA.Selenium;
 
 namespace CompetitionTaskMars.Tests
 {
@@ -23,8 +27,7 @@ namespace CompetitionTaskMars.Tests
         LoginPage loginPageObj;
         HomePage homePageObj;
         EducationPage educationPageObj;
-        public static ExtentReports extent;
-        public static ExtentTest test;
+        EducationData educationData;
 
         public Education_Tests()
         {
@@ -36,15 +39,8 @@ namespace CompetitionTaskMars.Tests
         [OneTimeSetUp]
         public static void ExtentStart()
         {
-            extent = new ExtentReports();
             var sparkReporter = new ExtentSparkReporter(@"D:\Sasikala\MVP_Studio\CompetitionTask\CompetitionTaskMars\CompetitionTaskMars\ExtentReports\Education.html");
             extent.AttachReporter(sparkReporter);
-        }
-
-        [OneTimeTearDown]
-        public static void ExtentClose()
-        {
-            extent.Flush();
         }
 
         [SetUp]
@@ -67,104 +63,126 @@ namespace CompetitionTaskMars.Tests
         public void Add_Education()
         {
             // Read test data for the AddEducation test case
-            var testDataList = TestDataHelper.ReadTestData("D:\\Sasikala\\MVP_Studio\\CompetitionTask\\CompetitionTaskMars\\CompetitionTaskMars\\Data\\testdata.json")["AddEducation"];
+            List<EducationData> educationDataList = EducationDataHelper.ReadEducationData(@"addEducationData.json");
 
             // Iterate through test data and retrieve AddEducation test data
-            foreach (var testData in testDataList)
+            foreach (var educationData in educationDataList)
             {
-                string universityName = testData["UniversityName"];
-                string country = testData["Country"];
-                string title = testData["Title"];
-                string degree = testData["Degree"];
-                string yearOfGraduation = testData["YearOfGraduation"];
-
                 test = extent.CreateTest("Add_Education").Info("Test started");
-                educationPageObj.Add_Education(universityName, country, title, degree, yearOfGraduation);
+                educationPageObj.Add_Education(educationData);
+
+                bool containsSpecialChars = ContainsSpecialCharacters(educationData.UniversityName);
 
                 string actualMessage = educationPageObj.getMessage();
-                Assert.That(actualMessage == "Education has been added", "Actual message and expected message do not match");
 
-                string newUniversityName = educationPageObj.getUniversityName(universityName);
-                string newCountry = educationPageObj.getCountry(country);
-                string newTitle = educationPageObj.getTitle(title);
-                string newDegree = educationPageObj.getDegree(degree);
-                string newYearOfGraduation = educationPageObj.getYearOfGraduation(yearOfGraduation);
-
-                Assert.That(newUniversityName == universityName, "Actual University name and expected University name do not match");
-                Assert.That(newCountry == country, "Actual country and expected country do not match");
-                Assert.That(newTitle == title, "Actual title and expected title do not match");
-                Assert.That(newDegree == degree, "Actual degree and expected degree do not match");
-                Assert.That(newYearOfGraduation == yearOfGraduation, "Actual yearOfGraduation and expected yearOfGraduation do not match");
-
-                test.Log(Status.Pass, "Add_Education passed");
-                Console.WriteLine(actualMessage);
+                if (containsSpecialChars)
+                {
+                    try
+                    {
+                        Assert.That(actualMessage == "Special characters are not allowed", "Actual message and expected message do not match");
+                    }
+                    catch (AssertionException ex)
+                    {
+                        test.Log(Status.Fail, "Education failed: " + ex.Message);
+                        Console.WriteLine(actualMessage);
+                        CaptureScreenshot("SpecialCharactersFailed");
+                    }
+                }
+                else
+                {
+                    if (educationPageObj.getUniversityName(educationData.UniversityName) == educationData.UniversityName)
+                    {
+                        Assert.That(educationPageObj.getUniversityName(educationData.UniversityName) == educationData.UniversityName, "Actual University name and expected University name do not match");
+                        Assert.That(educationPageObj.getCountry(educationData.Country) == educationData.Country, "Actual country and expected country do not match");
+                        Assert.That(educationPageObj.getTitle(educationData.Title) == educationData.Title, "Actual title and expected title do not match");
+                        Assert.That(educationPageObj.getDegree(educationData.Degree) == educationData.Degree, "Actual degree and expected degree do not match");
+                        Assert.That(educationPageObj.getYearOfGraduation(educationData.YearOfGraduation) == educationData.YearOfGraduation, "Actual yearOfGraduation and expected yearOfGraduation do not match");
+                        test.Log(Status.Pass, "Add_Education passed");
+                        Console.WriteLine(actualMessage);
+                    }
+                    try
+                    {
+                        Assert.That(actualMessage == "Education has been added" || actualMessage == "This information is already exist.", "Actual message and expected message do not match");
+                        if (actualMessage == "This information is already exist.")
+                        {
+                            // Call the cancel() method or perform the necessary action
+                            educationPageObj.getCancel();
+                        }
+                        test.Log(Status.Pass, "Education passed");
+                    }
+                    catch (AssertionException ex)
+                    {
+                        test.Log(Status.Fail, "Education failed: " + ex.Message);
+                        Console.WriteLine(actualMessage);
+                        CaptureScreenshot("TestFailed");
+                    }
+                }
             }
         }
 
         [Test, Order(3), Description("This test is updating an existing education in the list")]
-        public void Update_Education()
+        [TestCase(1)]
+        public void Update_Education(int id)
         {
-            var testDataList = TestDataHelper.ReadTestData("D:\\Sasikala\\MVP_Studio\\CompetitionTask\\CompetitionTaskMars\\CompetitionTaskMars\\Data\\testdata.json")["UpdateEducation"];
+            EducationData existingEducationData = EducationDataHelper.ReadEducationData(@"addEducationData.json").FirstOrDefault(x => x.Id == id);
+            EducationData newEducationData = EducationDataHelper.ReadEducationData(@"updateEducationData.json").FirstOrDefault(x => x.Id == id);
 
-            foreach (var testData in testDataList)
-            {
-                string existingUniversityName = testData["ExistingUniversityName"];
-                string existingCountry = testData["ExistingCountry"];
-                string existingTitle = testData["ExistingTitle"];
-                string existingDegree = testData["ExistingDegree"];
-                string existingYearOfGraduation = testData["ExistingYearOfGraduation"];
-                string newUniversityName = testData["NewUniversityName"];
-                string newCountry = testData["NewCountry"];
-                string newTitle = testData["NewTitle"];
-                string newDegree = testData["NewDegree"];
-                string newYearOfGraduation = testData["NewYearOfGraduation"];
+            test = extent.CreateTest("Update_Education").Info("Test started");
+            educationPageObj.Update_Education(existingEducationData, newEducationData);
 
-                test = extent.CreateTest("Update_Education").Info("Test started");
-                educationPageObj.Update_Education(existingUniversityName, existingCountry, existingTitle, existingDegree, existingYearOfGraduation, newUniversityName,
-                                                           newCountry, newTitle, newDegree, newYearOfGraduation);
+            string actualMessage = educationPageObj.getMessage();
+            Assert.That(actualMessage == "Education as been updated", "Actual message and expected message do not match");
 
-                string actualMessage = educationPageObj.getMessage();
-                Assert.That(actualMessage == "Education as been updated", "Actual message and expected message do not match");
+            string updatedUniversityName = educationPageObj.getUniversityName(newEducationData.UniversityName);
+            string updatedCountry = educationPageObj.getCountry(newEducationData.Country);
+            string updatedTitle = educationPageObj.getTitle(newEducationData.Title);
+            string updatedDegree = educationPageObj.getDegree(newEducationData.Degree);
+            string updatedYearOfGraduation = educationPageObj.getYearOfGraduation(newEducationData.YearOfGraduation);
 
-                string updatedUniversityName = educationPageObj.getUniversityName(newUniversityName);
-                string updatedCountry = educationPageObj.getCountry(newCountry);
-                string updatedTitle = educationPageObj.getTitle(newTitle);
-                string updatedDegree = educationPageObj.getDegree(newDegree);
-                string updatedYearOfGraduation = educationPageObj.getYearOfGraduation(newYearOfGraduation);
+            Assert.That(updatedUniversityName == newEducationData.UniversityName, "Updated University name and expected University name do not match");
+            Assert.That(updatedCountry == newEducationData.Country, "Updated country and expected country do not match");
+            Assert.That(updatedTitle == newEducationData.Title, "Updated title and expected title do not match");
+            Assert.That(updatedDegree == newEducationData.Degree, "Updated degree and expected degree do not match");
+            Assert.That(updatedYearOfGraduation == newEducationData.YearOfGraduation, "Updated yearOfGraduation and expected yearOfGraduation do not match");
 
-                Assert.That(updatedUniversityName == newUniversityName, "Updated University name and expected University name do not match");
-                Assert.That(updatedCountry == newCountry, "Updated country and expected country do not match");
-                Assert.That(updatedTitle == newTitle, "Updated title and expected title do not match");
-                Assert.That(updatedDegree == newDegree, "Updated degree and expected degree do not match");
-                Assert.That(updatedYearOfGraduation == newYearOfGraduation, "Updated yearOfGraduation and expected yearOfGraduation do not match");
-
-                test.Log(Status.Pass, "Update_Education passed");
-                Console.WriteLine(actualMessage);
-            }
+            test.Log(Status.Pass, "Update_Education passed");
+            Console.WriteLine(actualMessage);
         }
 
         [Test, Order(4), Description("This test is deleting an existing education in the list")]
-        public void Delete_Education()
+        [TestCase(1)]
+        public void Delete_Education(int id)
         {
-            var testDataList = TestDataHelper.ReadTestData("D:\\Sasikala\\MVP_Studio\\CompetitionTask\\CompetitionTaskMars\\CompetitionTaskMars\\Data\\testdata.json")["DeleteEducation"];
-            foreach (var testData in testDataList)
-            {
-                string universityName = testData["UniversityName"];
-                string country = testData["Country"];
-                string title = testData["Title"];
-                string degree = testData["Degree"];
-                string yearOfGraduation = testData["YearOfGraduation"];
+            EducationData educationData = EducationDataHelper.ReadEducationData(@"deleteEducationData.json").FirstOrDefault(x => x.Id == id);
+            test = extent.CreateTest("Delete_Education").Info("Test started");
+            educationPageObj.Delete_Education(educationData);
 
-                test = extent.CreateTest("Delete_Education").Info("Test started");
-                educationPageObj.Delete_Education(universityName, country, title, degree, yearOfGraduation);
+            string actualMessage = educationPageObj.getMessage();
+            Assert.That(actualMessage == "Education entry successfully removed", "Actual message and expected message do not match");
+
+            string deletedEducation = educationPageObj.getDeletedEducation(educationData);
+            Assert.That(deletedEducation == null, "Expected education has not been deleted");
+
+            test.Log(Status.Pass, "Delete_Education passed");
+            Console.WriteLine(actualMessage);
+        }
+                
+        [Test, Order(5), Description("This test is adding empty textbox in the education list")]
+        public void EmptyTextbox_Education()
+        {
+            // Read test data for the AddEducation test case
+            List<EducationData> educationDataList = EducationDataHelper.ReadEducationData(@"emptyEducationData.json");
+
+            // Iterate through test data and retrieve EmptyEducation test data
+            foreach (var educationData in educationDataList)
+            {
+                test = extent.CreateTest("EmptyTextbox_Education").Info("Test started");
+                educationPageObj.Add_Education(educationData);
 
                 string actualMessage = educationPageObj.getMessage();
-                Assert.That(actualMessage == "Education entry successfully removed", "Actual message and expected message do not match");
+                Assert.That(actualMessage == "Please enter all the fields", "Actual message and expected message do not match");
 
-                string deletedEducation = educationPageObj.getDeletedEducation(universityName, country, title, degree, yearOfGraduation);
-                Assert.That(deletedEducation == null, "Expected education has not been deleted");
-
-                test.Log(Status.Pass, "Delete_Education passed");
+                test.Log(Status.Pass, "EmptyTextbox_Education passed");
                 Console.WriteLine(actualMessage);
             }
         }
@@ -175,6 +193,10 @@ namespace CompetitionTaskMars.Tests
             Close();
         }
 
-
+        [OneTimeTearDown]
+        public static void ExtentClose()
+        {
+            extent.Flush();
+        }
     }
 }

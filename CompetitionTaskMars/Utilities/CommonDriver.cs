@@ -12,8 +12,6 @@ namespace CompetitionTaskMars.Utilities
     public class CommonDriver
     {
         public static IWebDriver driver;
-        public static ExtentReports extent = new ExtentReports();
-        public static ExtentTest test;
 
         public void Initialize()
         {

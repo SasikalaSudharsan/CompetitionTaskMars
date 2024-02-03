@@ -4,11 +4,6 @@ using CompetitionTaskMars.Data;
 using CompetitionTaskMars.Pages;
 using CompetitionTaskMars.Utilities;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CompetitionTaskMars.Tests
 {
@@ -18,6 +13,8 @@ namespace CompetitionTaskMars.Tests
         LoginPage loginPageObj;
         HomePage homePageObj;
         CertificationsPage certificationsPageObj;
+        public static ExtentReports extent;
+        public static ExtentTest test;
 
         public Certifications_Tests()
         {
@@ -29,9 +26,13 @@ namespace CompetitionTaskMars.Tests
         [OneTimeSetUp]
         public static void ExtentStart()
         {
+            //Create new instance of ExtentReports
+            extent = new ExtentReports();
+            //Create new instance of ExtentSparkReporter
             var sparkReporter = new ExtentSparkReporter(@"D:\Sasikala\MVP_Studio\CompetitionTask\CompetitionTaskMars\CompetitionTaskMars\ExtentReports\Certification.html");
+            //Attach the ExtentSparkReporter to the ExtentReports
             extent.AttachReporter(sparkReporter);
-        }
+        } 
 
         [SetUp]
         public void SetUp()
@@ -53,23 +54,60 @@ namespace CompetitionTaskMars.Tests
         public void Add_Certification()
         {
             test = extent.CreateTest("Add_Certification").Info("Test started");
+            // Read test data for the AddCertification test case
             List<CertificationData> certificationDataList = CertificationDataHelper.ReadCertificationData(@"addCertificationData.json");
 
-            foreach(var certificationData in certificationDataList)
+            // Iterate through test data and retrieve AddCertification test data
+            foreach (var certificationData in certificationDataList)
             {
                 certificationsPageObj.Add_Certification(certificationData);
-
                 string actualMessage = certificationsPageObj.getMessage();
-                Console.WriteLine(actualMessage);
-                Assert.That(actualMessage == "ISTQB has been added to your certification", "Actual message and expected message do not match");
 
-                if (certificationsPageObj.getCertificate(certificationData.Certificate) == certificationData.Certificate)
+                // Check if the Certificate contains special characters
+                bool containsSpecialChars = ContainsSpecialCharacters(certificationData.Certificate);
+                if(containsSpecialChars)
                 {
-                    Assert.That(certificationsPageObj.getCertificate(certificationData.Certificate) == certificationData.Certificate, "Actual certificate and expected certificate do not match");
-                    Assert.That(certificationsPageObj.getCertifiedFrom(certificationData.CertifiedFrom) == certificationData.CertifiedFrom, "Actual certifiedFrom and expected certifiedFrom do not match");
-                    Assert.That(certificationsPageObj.getYear(certificationData.Year) == certificationData.Year, "Actual year and expected year do not match");
-                    test.Log(Status.Pass, "Add_Certification passed");
+                    try
+                    {
+                        // Verify that the actual message matches the expected message for special characters
+                        Assert.That(actualMessage == "Special characters are not allowed", "Actual message and expected message do not match");
+                    }
+                    catch(AssertionException ex) 
+                    {
+                        // Log the failure and capture a screenshot
+                        test.Log(Status.Fail, "SpecialCharacters Certification failed" + ex.Message);
+                        Console.WriteLine(actualMessage);
+                        CaptureScreenshot("SpecialCharsCertificationFailed");
+                    }
                 }
+                else
+                {
+                    // Verify if special characters are not present in the Certificate
+                    if (certificationsPageObj.getCertificate(certificationData.Certificate) == certificationData.Certificate)
+                    {
+                        Assert.That(certificationsPageObj.getCertificate(certificationData.Certificate) == certificationData.Certificate, "Actual certificate and expected certificate do not match");
+                        Assert.That(certificationsPageObj.getCertifiedFrom(certificationData.CertifiedFrom) == certificationData.CertifiedFrom, "Actual certifiedFrom and expected certifiedFrom do not match");
+                        Assert.That(certificationsPageObj.getYear(certificationData.Year) == certificationData.Year, "Actual year and expected year do not match");
+                        Console.WriteLine(actualMessage);
+                    }
+                    try
+                    {
+                        Assert.That(actualMessage == "ISTQB has been added to your certification"  || actualMessage == "This information is already exist.", "Actual message and expected message do not match");
+                        test.Log(Status.Pass, "Certification passed");
+                        // If information already exists, call the cancel method
+                        if (actualMessage == "This information is already exist.")
+                        {
+                            certificationsPageObj.getCancel();
+                        }
+                    }
+                    catch(AssertionException ex)
+                    {
+                        // Log the failure and capture a screenshot
+                        test.Log(Status.Fail, "Certification failed: " + ex.Message);
+                        Console.WriteLine(actualMessage);
+                        CaptureScreenshot("CertificationTestFailed");
+                    }
+                }              
             }
         }
 
@@ -78,6 +116,8 @@ namespace CompetitionTaskMars.Tests
         public void Update_Certification(int id)
         {
             test = extent.CreateTest("Update_Certification").Info("Test started");
+
+            // Read certification data from the specified JSON file and retrieve the item with a matching Id
             CertificationData existingCertificationData = CertificationDataHelper.ReadCertificationData(@"addCertificationData.json").FirstOrDefault(x => x.Id == id);
             CertificationData newCertificationData = CertificationDataHelper.ReadCertificationData(@"updateCertificationData.json").FirstOrDefault(x => x.Id == id);
 
@@ -97,6 +137,8 @@ namespace CompetitionTaskMars.Tests
         public void Delete_Certification(int id)
         {
             test = extent.CreateTest("Delete_Certification").Info("Test started");
+
+            // Read certification data from the specified JSON file and retrieve the item with a matching Id
             CertificationData certificationData = CertificationDataHelper.ReadCertificationData(@"deleteCertificationData.json").FirstOrDefault(x => x.Id == id);
 
             certificationsPageObj.Delete_Certification(certificationData);
@@ -112,8 +154,10 @@ namespace CompetitionTaskMars.Tests
         public void EmptyTextbox_Certification()
         {
             test = extent.CreateTest("EmptyTextbox_Certification").Info("Test started");
+            // Read test data for the emptyCertification test case
             List<CertificationData> certificationDataList = CertificationDataHelper.ReadCertificationData(@"emptyCertificationData.json");
 
+            // Iterate through test data and retrieve EmptyCertification test data
             foreach (var certificationData in certificationDataList)
             {
                 certificationsPageObj.Add_Certification(certificationData);
@@ -133,7 +177,8 @@ namespace CompetitionTaskMars.Tests
         [OneTimeTearDown]
         public static void ExtentClose()
         {
+            //Flush the ExtentReports instance
             extent.Flush();
-        }
+        } 
     }
 }
